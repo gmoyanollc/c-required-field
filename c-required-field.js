@@ -17,6 +17,7 @@
     ~~~
 
   ## Change Log
+  20190613-1.5.0-initial multi-input checkbox and radio required field
   20190611-1.4.1-default input value validation, textarea support, and error title emulation fix-g
   20190606-1.4.0-initial SELECT `DropDownChoice`-g
   20190605-1.3.0-initial input error display after invalid post-g
@@ -30,17 +31,21 @@
 function cRequiredField(tabId, labelId) {
   //const fieldTabId = tabId
   var input = { 
-    id: "",
+    // 150 id: "",
+    ids: [],
     title: "",
     titleRequiredSuffix: " is a required field.",      
     requiredErrorSpanClass: "ms-formvalidation ms-csrformvalidation",
     requiredErrorInnerSpanText: "You can't leave this blank.",
     requiredErrorInnerSiblingSpanRole: "alert",
+    // +150
+    requiredErrorInnerSiblingSpanMultiInputStyle: "margin-left: 1em",
     //requiredErrorSpan: "<SPAN class='ms-formvalidation ms-csrformvalidation'></SPAN>",
     //requiredErrorSpanChild: "<SPAN role='alert'>You can't leave this blank.<br></SPAN>",
     // 120 existValue: false
     // -141 hasValue: false,
-    hasValue: function () { return hasValue(input.id) },
+    // 150 hasValue: function () { return hasValue(input.id) },
+    hasValue: function () { return hasValue() },
     // +120
     isActive: true
   }
@@ -67,12 +72,14 @@ function cRequiredField(tabId, labelId) {
       if ((divId != null) && (divId.startsWith(id)))
         if ((divId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) 
           if ((divRole != null) && (divRole == "textbox")) {
-            input.id = divId
+            // 150 input.id = divId
+            input.ids[0] = divId
             break
           }
     }
 
-    if ( input.id == "" ) {
+    // 150 if ( input.id == "" ) {
+    if ( input.ids.length == 0 ) {
       var selects = document.getElementsByTagName("select")
 
       for (var i = 0; i < selects.length; i++) {
@@ -86,7 +93,8 @@ function cRequiredField(tabId, labelId) {
             // 140 if ((selectId.endsWith("LookupField")) || (selectId.endsWith("SelectResult"))) {
             if ((selectId.endsWith("LookupField")) || (selectId.endsWith("SelectResult")) || (selectId.endsWith("DropDownChoice"))) {
               // 110 input.id = selects[i].getAttribute("id")
-              input.id = selectId
+              // 150 input.id = selectId
+              input.ids[0] = selectId
               // +120
               break
             }
@@ -94,44 +102,56 @@ function cRequiredField(tabId, labelId) {
 
     }
     // +141 begin
-    if ( input.id == "" ) {
+    // 150 if ( input.id == "" ) {
+    if ( input.ids.length == 0 ) {
       var textareas = document.getElementsByTagName("textarea")
 
       for (var i = 0; i < textareas.length; i++) {
         var textareaId = textareas[i].getAttribute("id")
         if ((textareaId != null) && (textareaId.startsWith(id)))
           if ((textareaId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) {
-            input.id = textareaId
+            // 150 input.id = textareaId
+            input.ids[0] = textareaId
             break
           }
       }
 
     }  // +141 end
     // +120 end
-    if ( input.id == "" ) {
+    // 150 if ( input.id == "" ) {
+    if ( input.ids.length == 0 ) {
       var inputs = document.getElementsByTagName("input")
 
       for (var i = 0; i < inputs.length; i++) {
         var inputId = inputs[i].getAttribute("id")
         if ((inputId != null) && (inputId.startsWith(id)))
           // +110 handle cases with/out space: `system` != `systemx0020component`
-          if ((inputId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) {
-            input.id = inputId
+          if ((inputId.indexOf("_x0020_")) == (id.indexOf("_x0020_")))
+            // +150 begin
+            if ((inputs[i].type == "checkbox") || (inputs[i].type == "radio"))
+              input.ids.push(inputId)
+            else { // +150 end
+            // 150 input.id = inputId
+            input.ids[0] = inputId
             break
           } 
       }
 
     }
     // +140 
-    if ( input.id == "" ) console.log("ERROR: input id not found for element: " + id)
+    // 150 if ( input.id == "" ) console.log("ERROR: input id not found for element: " + id)
+    if ( input.ids.length == 0 ) console.log("[error]: input id not found for element: " + id)
   }
 
   function setInputTitle () {
     // -140 input.title = document.getElementById(input.id).getAttribute("title")
     // +140 begin
-    var inputElement = document.getElementById(input.id)
+    // 150 var inputElement = document.getElementById(input.id)
+    var inputElement = document.getElementById(input.ids[0])
     if (typeof inputElement.title != "undefined")
       input.title = inputElement.title
+      // +150
+    else console.log("[warning] undefined input title: " + input.ids[0])
     //var inputTitle = document.getElementById(input.id).getAttribute("title")
     //if (inputTitle != null)
       //input.title = inputTitle
@@ -148,10 +168,10 @@ function cRequiredField(tabId, labelId) {
     element.innerHTML = elementInnerHtmlSliceToClosingTag + label.requiredSpan + elementInnerHtmlClosingTagSlice
   }
 
-  function appendInputTitleRequiredSuffix () {
+  /* -150 function appendInputTitleRequiredSuffix () {
     var element = document.getElementById(input.id)
     element.setAttribute("title", input.title + input.titleRequiredSuffix)
-  }
+  } //-150 */
 
   // +130
   var getInputErrorSpan = function (inputElement) {
@@ -172,39 +192,84 @@ function cRequiredField(tabId, labelId) {
   } 
 
   // +130
-  var insertInputError = function (id) {
-    var inputElement = document.getElementById(id)
+  // 150 var insertInputError = function (id) {
+  var insertInputError = function () {
+    // 150 var inputElement = document.getElementById(id)
+    var inputElement = document.getElementById(input.ids[input.ids.length - 1])
     var inputErrorSpan = getInputErrorSpan(inputElement)
     if ( inputErrorSpan == null ) {
       var inputElementRequiredErrorSpan = document.createElement("SPAN")
-      inputElementRequiredErrorSpan.setAttribute("id", "Error_" + id)
+      // 150 inputElementRequiredErrorSpan.setAttribute("id", "Error_" + id)
+      inputElementRequiredErrorSpan.setAttribute("id", "Error_" + inputElement)
       inputElementRequiredErrorSpan.setAttribute("class", input.requiredErrorSpanClass)
-      var inputElementRequiredErrorInnerSpan = document.createElement("SPAN")
+      // 150 var inputElementRequiredErrorInnerSpan = document.createElement("SPAN")
       var inputElementRequiredErrorInnerSiblingSpan = document.createElement("SPAN")
       inputElementRequiredErrorInnerSiblingSpan.setAttribute("role", input.requiredErrorInnerSiblingSpanRole)
       var inputElementRequiredErrorInnerSpanText = document.createTextNode(input.requiredErrorInnerSpanText)
+      // +150 begin
+      // prepend spacer for multi-input checkbox and radio required fields
+      if (input.ids.length > 1) {
+        inputElementRequiredErrorInnerSiblingSpan.setAttribute("style", input.requiredErrorInnerSiblingSpanMultiInputStyle)
+        /*var inputElementRequiredErrorInnerSpanPre = document.createElement("P")
+        var inputElementRequiredErrorInnerSpanPreText = document.createTextNode("  ")
+        inputElementRequiredErrorInnerSpanPre.appendChild(inputElementRequiredErrorInnerSpanPreText)
+        inputElementRequiredErrorInnerSiblingSpan.appendChild(inputElementRequiredErrorInnerSpanPre)*/
+      }
+      // +150 end
       inputElementRequiredErrorInnerSiblingSpan.appendChild(inputElementRequiredErrorInnerSpanText)
-      linebreak = document.createElement("br");
-      inputElementRequiredErrorInnerSiblingSpan.appendChild(linebreak)
+      // -150 linebreak = document.createElement("br");
+      // 150 inputElementRequiredErrorInnerSiblingSpan.appendChild(linebreak)
+      inputElementRequiredErrorInnerSiblingSpan.appendChild(document.createElement("BR"))
       inputElementRequiredErrorSpan.appendChild(inputElementRequiredErrorInnerSiblingSpan)
       inputElement.parentElement.appendChild(inputElementRequiredErrorSpan)
     }
   }
 
   // +141 begin
-  function hasValue(id) {
+  // 150 function hasValue(id) {
+  function hasValue() {
     var hasValue = false
-    var inputElement = document.getElementById(id)
-    var isEmpty = false
-    if ( typeof inputElement.value != "undefined" ) {
-      if ( (inputElement.value == "") || (inputElement.value == "0") )
-        isEmpty = true
-    } else
-      if (inputElement.innerText.length <=2)
-        isEmpty = true
-    if (!isEmpty) {
-      hasValue = true
-    } 
+    // +150 begin
+    var inputElement
+    // -150 var isEmpty = false
+    
+    for (var item in input.ids) {
+      // +150 end
+      // 150 var inputElement = document.getElementById(id)
+      inputElement = document.getElementById(input.ids[item])
+      // -150 var isEmpty = false
+      // +150 begin
+      if (typeof inputElement.type != "undefined") {
+        switch (inputElement.type) {
+          case "checkbox":
+          case "radio":
+            if (inputElement.checked) {
+              hasValue = true
+              break
+            } else 
+              break
+          default:
+            if ( (inputElement.value != "") && (inputElement.value != "0") ) {
+              hasValue = true
+              break
+            }
+        }
+      } else
+      // +150 end
+        // -150 if ( (inputElement.value == "") || (inputElement.value == "0") )
+          // -150 isEmpty = true
+        // -150 else
+            // 150 if (inputElement.innerText.length <=2)
+        if (inputElement.innerText.length > 2)
+          // -150 isEmpty = true
+      // -150 if (!isEmpty) {
+          hasValue = true
+      if (hasValue)
+        break
+      // -150 }
+    // +150
+    }
+
     return hasValue
   }  // +141 end
 
@@ -246,14 +311,17 @@ function cRequiredField(tabId, labelId) {
       }
     }
 -130 */
-    function removeInputError (id) {
-      var inputElement = document.getElementById(id)
+    // 150 function removeInputError (id) {
+    function removeInputError () {
+      // 150 var inputElement = document.getElementById(id)
+      var inputElement = document.getElementById(input.ids[input.ids.length - 1])
       var inputErrorSpan = getInputErrorSpan(inputElement)
       if ( inputErrorSpan != null ) 
         inputElement.parentElement.removeChild(inputErrorSpan)
     }
 
-    function validateInput(id) {
+    // 150 function validateInput(id) {
+    function validateInput() {
       /* -141 var inputElement = document.getElementById(id)
       // +110
       var isEmpty = false
@@ -266,33 +334,42 @@ function cRequiredField(tabId, labelId) {
           isEmpty = true
       // +120 end -141 */
       // 141 if (isEmpty) {
-      if (hasValue(id)) {
+      // 150 if (hasValue(id)) {
+      if (hasValue()) {
         // -141 insertInputError(id)
         // +141
-        removeInputError(id)
+        // 150 removeInputError(id)
+        removeInputError()
         // 120 input.existValue = false
         // -141 input.hasValue = false
       }
       else {
         // -141 removeInputError(id)
         // +141
-        insertInputError(id)
+        // 150 insertInputError(id)
+        insertInputError()
         // 120 input.existValue = true
         // -141 input.hasValue = true
       } 
     }
 
-    // +110
-    var inputElement = document.getElementById(input.id)
-    // +120 begin
-    if ((inputElement.childElementCount > 0) && (inputElement.firstElementChild.tagName == "P"))
-      //inputElement.firstElementChild.onblur = function() { validateInput(inputElement.firstElementChild) } 
-      inputElement.onfocusout = function() { validateInput(input.id) } 
-    else
-    // +120 end
-      // 110
-      //document.getElementById(input.id).onblur = function() { validateInput(input.id) } 
-      inputElement.onblur = function() { validateInput(input.id) } 
+    // +150
+    input.ids.forEach( function (inputIdItem) {
+      // +110
+      // 150 var inputElement = document.getElementById(input.id)
+      var inputElement = document.getElementById(inputIdItem)
+      // +120 begin
+      if ((inputElement.childElementCount > 0) && (inputElement.firstElementChild.tagName == "P"))
+        // 150 inputElement.onfocusout = function() { validateInput(input.id) }
+        inputElement.onfocusout = function() { validateInput() }
+      else
+      // +120 end
+        // 110 document.getElementById(input.id).onblur = function() { validateInput(input.id) } 
+        // 150 inputElement.onblur = function() { validateInput(input.id) }
+        inputElement.onblur = function() { validateInput() }
+    // +150
+    })
+
   }
 
   return {
@@ -301,12 +378,14 @@ function cRequiredField(tabId, labelId) {
     setInputIsActive: function (InputIsActive) { input.isActive = InputIsActive },
     //getFieldTabId: function () { return fieldTabId },
     getInput: function () { return input },
-    getInputId: function () { return input.id },
+    // 150 getInputId: function () { return input.id },
+    getInputIds: function () { return input.ids },
     getLabel: function () { return label },
     // 120 hasInputValue: function () { return input.existValue },
     hasInputValue: function () { return input.hasValue() },
     // +120
     isInputActive: function () { return input.isActive },
-    displayInputRequiredError: function () { insertInputError(input.id) }
+    // 150 displayInputRequiredError: function () { insertInputError(input.id) }
+    displayInputRequiredError: function () { insertInputError() }
   }
 }
