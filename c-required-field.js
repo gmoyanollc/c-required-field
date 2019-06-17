@@ -3,30 +3,29 @@
     `cRequiredField` may be used to add required-field behavior  
     to a Sharepoint form field not specified as `required` in Designer.
 
-    Usage: 
-
+    ## Usage
       Instantiate a `cRequiredField` object to add required-field behavior:
       ~~~
         var cRequired[field-label-id] = new cRequiredField([field-label-id])
       ~~~
-
       For example:
       ~~~
         var cRequiredLocation = new cRequiredField("Location")
       ~~~
-
-      Check whether a cRequiredField field contains a value:
+      Check whether a cRequiredField object contains a value:
       ~~~
         if ( cRequiredLocation.hasInputValue() ) {...}
       ~~~
 
-    Change Log:
+    ## Change Log
+    20190604-1.2.0-initial text box validation-g
+    20190530-1.1.0-initial lookup validation-g
+    20190529-1.0.0-initial implementation-g
 
-      20190529-1.0.0-initial implementation-g
-      20190530-1.1.0-initial lookup validation-g
   */
 
-  function cRequiredField(labelId) {
+  function cRequiredField(tabId, labelId) {
+    //const fieldTabId = tabId
     let input = { 
       id: "",
       title: "",
@@ -36,12 +35,15 @@
       requiredErrorInnerSiblingSpanRole: "alert",
       //requiredErrorSpan: "<SPAN class='ms-formvalidation ms-csrformvalidation'></SPAN>",
       //requiredErrorSpanChild: "<SPAN role='alert'>You can't leave this blank.<br></SPAN>",
-      existValue: false
+      // 120 existValue: false
+      hasValue: false,
+      // +120
+      isActive: true
     }
     let label = { 
       id: labelId,
       title: "",
-      requiredSpan: "<SPAN class='ms-accentText' title='This is a required field.'> *</SPAN>",
+      requiredSpan: "<SPAN class='ms-accentText' title='This is a required field.'> *</SPAN>"
     }
     setInputId(labelId)
     setInputTitle()
@@ -50,20 +52,18 @@
     setInputValidationOnBlurEvent()
 
     function setInputId (id) {
-      var inputs = document.getElementsByTagName("input")
+      // +120 begin
+      let divs = document.getElementsByTagName("div")
 
-      for (var i = 0; i < inputs.length; i++) {
-        // +110
-        let inputId = inputs[i].getAttribute("id")
-        // 110 if ((inputs[i].getAttribute("id") != null) && (inputs[i].getAttribute("id").startsWith(id)))
-        if ((inputId != null) && (inputId.startsWith(id)))
-          // +110 handle cases with/out space: `system` != `systemx0020component`
-          if ((inputId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) {
-          //if ( (id.contains("x0020")) && (inputId.contains("x0020")) )
-            // 110 input.id = inputs[i].getAttribute("id")
-            input.id = inputId
-            break
-          }
+      for (var i = 0; i < divs.length; i++) {
+        let divId = divs[i].getAttribute("id")
+        let divRole = divs[i].getAttribute("role")
+        if ((divId != null) && (divId.startsWith(id)))
+          if ((divId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) 
+            if ((divRole != null) && (divRole == "textbox")) {
+              input.id = divId
+              break
+            }
       }
 
       if ( input.id == "" ) {
@@ -75,14 +75,57 @@
           // 110 if ((selects[i].getAttribute("id") != null) && (selects[i].getAttribute("id").startsWith(id)))
           if ((selectId != null) && (selectId.startsWith(id)))
             // +110 handle cases with/out space: `system` != `systemx0020component`
-            if ((selectId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) {
-              // 110 input.id = selects[i].getAttribute("id")
-              input.id = selectId
-              break
-          }
+            if ((selectId.indexOf("_x0020_")) == (id.indexOf("_x0020_")))
+              // +120
+              if ((selectId.endsWith("LookupField")) || (selectId.endsWith("SelectResult"))) {
+                // 110 input.id = selects[i].getAttribute("id")
+                input.id = selectId
+                // +120
+                break
+              }
         }
 
       }
+      // +120 end
+
+      if ( input.id == "" ) {
+        var inputs = document.getElementsByTagName("input")
+
+        for (var i = 0; i < inputs.length; i++) {
+          // +110
+          let inputId = inputs[i].getAttribute("id")
+          // 110 if ((inputs[i].getAttribute("id") != null) && (inputs[i].getAttribute("id").startsWith(id)))
+          if ((inputId != null) && (inputId.startsWith(id)))
+            // +110 handle cases with/out space: `system` != `systemx0020component`
+            if ((inputId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) {
+              // 110 input.id = inputs[i].getAttribute("id")
+              input.id = inputId
+              break
+            } else
+              break
+        }
+
+      }
+      /* -110 if ( input.id == "" ) {
+        var selects = document.getElementsByTagName("select")
+
+        for (var i = 0; i < selects.length; i++) {
+          // +110
+          let selectId = selects[i].getAttribute("id")
+          // 110 if ((selects[i].getAttribute("id") != null) && (selects[i].getAttribute("id").startsWith(id)))
+          if ((selectId != null) && (selectId.startsWith(id)))
+            // +110 handle cases with/out space: `system` != `systemx0020component`
+            if ((selectId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) {
+              // +110 begin
+              if ((selectId.endsWith("LookupField")) || (selectId.endsWith("SelectResult"))) {
+                // 110 input.id = selects[i].getAttribute("id")
+                input.id = selectId
+                break
+              }
+          }
+        }
+
+      } */
     }
 
     function setInputTitle () {
@@ -154,43 +197,51 @@
         let inputElement = document.getElementById(id)
         // +110
         let isEmpty = false
-        // +110 begin
-        /*if (inputElement.firstChild.nodeName == "P") {
-          if (!inputElement.firstChild.innerText.length <= 2)
-            isEmpty = true
-        } else */
-        // +110 end
+        // +120 begin
+        if ( typeof inputElement.value != "undefined" ) {
           if ( (inputElement.value == "") || (inputElement.value == "0") )
             isEmpty = true
-        // +110
+        } else
+          if (inputElement.innerText.length <=2)
+            isEmpty = true
+        // +120 end
         if (isEmpty) {
           insertInputError(id)
-          input.existValue = false
+          // 120 input.existValue = false
+          input.hasValue = false
         }
         else {
           removeInputError(id)
-          input.existValue = true
+          // 120 input.existValue = true
+          input.hasValue = true
         } 
       }
 
-      // +110 begin
+      // +110
       let inputElement = document.getElementById(input.id)
-      //if ((inputElement.nextElementSibling != null) && (inputElement.nextElementSibling.tagName == "P"))
-      // does not work if ((inputElement.value == "<p></p>"))
-      /*if (inputElement.hasAttribute("value"))
-          inputElement.nextElementSibling.onblur = function() { validateInput(inputElement) } 
-      else */
-      // +110 end
+      // +120 begin
+      if ((inputElement.childElementCount > 0) && (inputElement.firstElementChild.tagName == "P"))
+        //inputElement.firstElementChild.onblur = function() { validateInput(inputElement.firstElementChild) } 
+        inputElement.onfocusout = function() { validateInput(input.id) } 
+      else
+      // +120 end
         // 110
         //document.getElementById(input.id).onblur = function() { validateInput(input.id) } 
         inputElement.onblur = function() { validateInput(input.id) } 
-      //document.getElementById(input.id).onfocusout = function() { validateInput(input.id) } 
     }
 
     return {
+      // +120
+      tabId: tabId,
+      setInputIsActive: function (InputIsActive) { input.isActive = InputIsActive },
+      //getFieldTabId: function () { return fieldTabId },
       getInput: function () { return input },
+      getInputId: function () { return input.id },
       getLabel: function () { return label },
-      hasInputValue: function () { return input.existValue },
+      // 120 hasInputValue: function () { return input.existValue },
+      hasInputValue: function () { return input.hasValue },
+      // +120
+      isInputActive: function () { return input.isActive }
       //insertLabelRequiredSpan: function () { insertElementSpan(label.id) },
       //appendInputRequiredTitleSuffix: function () { appendElementRequiredTitleSuffix(input.id) },
       //insertInputError: function () { insertInputError(input.id) },
