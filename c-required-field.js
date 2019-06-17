@@ -18,6 +18,7 @@
       ~~~
 
     ## Change Log
+    20190604-1.2.1-downgrade `let` to `var` to ecma-5-g
     20190604-1.2.0-initial text box validation-g
     20190530-1.1.0-initial lookup validation-g
     20190529-1.0.0-initial implementation-g
@@ -26,7 +27,7 @@
 
   function cRequiredField(tabId, labelId) {
     //const fieldTabId = tabId
-    let input = { 
+    var input = { 
       id: "",
       title: "",
       titleRequiredSuffix: " is a required field.",      
@@ -40,7 +41,8 @@
       // +120
       isActive: true
     }
-    let label = { 
+
+    var label = { 
       id: labelId,
       title: "",
       requiredSpan: "<SPAN class='ms-accentText' title='This is a required field.'> *</SPAN>"
@@ -53,11 +55,11 @@
 
     function setInputId (id) {
       // +120 begin
-      let divs = document.getElementsByTagName("div")
+      var divs = document.getElementsByTagName("div")
 
       for (var i = 0; i < divs.length; i++) {
-        let divId = divs[i].getAttribute("id")
-        let divRole = divs[i].getAttribute("role")
+        var divId = divs[i].getAttribute("id")
+        var divRole = divs[i].getAttribute("role")
         if ((divId != null) && (divId.startsWith(id)))
           if ((divId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) 
             if ((divRole != null) && (divRole == "textbox")) {
@@ -71,7 +73,7 @@
 
         for (var i = 0; i < selects.length; i++) {
           // +110
-          let selectId = selects[i].getAttribute("id")
+          var selectId = selects[i].getAttribute("id")
           // 110 if ((selects[i].getAttribute("id") != null) && (selects[i].getAttribute("id").startsWith(id)))
           if ((selectId != null) && (selectId.startsWith(id)))
             // +110 handle cases with/out space: `system` != `systemx0020component`
@@ -93,7 +95,7 @@
 
         for (var i = 0; i < inputs.length; i++) {
           // +110
-          let inputId = inputs[i].getAttribute("id")
+          var inputId = inputs[i].getAttribute("id")
           // 110 if ((inputs[i].getAttribute("id") != null) && (inputs[i].getAttribute("id").startsWith(id)))
           if ((inputId != null) && (inputId.startsWith(id)))
             // +110 handle cases with/out space: `system` != `systemx0020component`
@@ -111,7 +113,7 @@
 
         for (var i = 0; i < selects.length; i++) {
           // +110
-          let selectId = selects[i].getAttribute("id")
+          var selectId = selects[i].getAttribute("id")
           // 110 if ((selects[i].getAttribute("id") != null) && (selects[i].getAttribute("id").startsWith(id)))
           if ((selectId != null) && (selectId.startsWith(id)))
             // +110 handle cases with/out space: `system` != `systemx0020component`
@@ -150,9 +152,9 @@
     function setInputValidationOnBlurEvent () { 
 
       function getInputErrorSpan(inputElement) {
-        let inputErrorSpan = null
-        let inputElementParent = inputElement.parentElement
-        let inputElementSibling = inputElementParent.firstChild
+        var inputErrorSpan = null
+        var inputElementParent = inputElement.parentElement
+        var inputElementSibling = inputElementParent.firstChild
 
         while (inputElementSibling) {
           if ( inputElementSibling.nodeName == "SPAN" )
@@ -167,16 +169,16 @@
       } 
 
       function insertInputError (id) {
-        let inputElement = document.getElementById(id)
-        let inputErrorSpan = getInputErrorSpan(inputElement)
+        var inputElement = document.getElementById(id)
+        var inputErrorSpan = getInputErrorSpan(inputElement)
         if ( inputErrorSpan == null ) {
-          let inputElementRequiredErrorSpan = document.createElement("SPAN")
+          var inputElementRequiredErrorSpan = document.createElement("SPAN")
           inputElementRequiredErrorSpan.setAttribute("id", "Error_" + id)
           inputElementRequiredErrorSpan.setAttribute("class", input.requiredErrorSpanClass)
-          let inputElementRequiredErrorInnerSpan = document.createElement("SPAN")
-          let inputElementRequiredErrorInnerSiblingSpan = document.createElement("SPAN")
+          var inputElementRequiredErrorInnerSpan = document.createElement("SPAN")
+          var inputElementRequiredErrorInnerSiblingSpan = document.createElement("SPAN")
           inputElementRequiredErrorInnerSiblingSpan.setAttribute("role", input.requiredErrorInnerSiblingSpanRole)
-          let inputElementRequiredErrorInnerSpanText = document.createTextNode(input.requiredErrorInnerSpanText)
+          var inputElementRequiredErrorInnerSpanText = document.createTextNode(input.requiredErrorInnerSpanText)
           inputElementRequiredErrorInnerSiblingSpan.appendChild(inputElementRequiredErrorInnerSpanText)
           linebreak = document.createElement("br");
           inputElementRequiredErrorInnerSiblingSpan.appendChild(linebreak)
@@ -187,16 +189,16 @@
       }
 
       function removeInputError (id) {
-        let inputElement = document.getElementById(id)
-        let inputErrorSpan = getInputErrorSpan(inputElement)
+        var inputElement = document.getElementById(id)
+        var inputErrorSpan = getInputErrorSpan(inputElement)
         if ( inputErrorSpan != null ) 
           inputElement.parentElement.removeChild(inputErrorSpan)
       }
 
       function validateInput(id) {
-        let inputElement = document.getElementById(id)
+        var inputElement = document.getElementById(id)
         // +110
-        let isEmpty = false
+        var isEmpty = false
         // +120 begin
         if ( typeof inputElement.value != "undefined" ) {
           if ( (inputElement.value == "") || (inputElement.value == "0") )
@@ -218,7 +220,7 @@
       }
 
       // +110
-      let inputElement = document.getElementById(input.id)
+      var inputElement = document.getElementById(input.id)
       // +120 begin
       if ((inputElement.childElementCount > 0) && (inputElement.firstElementChild.tagName == "P"))
         //inputElement.firstElementChild.onblur = function() { validateInput(inputElement.firstElementChild) } 
