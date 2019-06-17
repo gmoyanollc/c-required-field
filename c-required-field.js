@@ -18,6 +18,7 @@
       ~~~
 
     ## Change Log
+    20190605-1.3.0-initial input error display after invalid post-g
     20190604-1.2.1-downgrade `let` to `var` to ecma-5-g
     20190604-1.2.0-initial text box validation-g
     20190530-1.1.0-initial lookup validation-g
@@ -94,13 +95,10 @@
         var inputs = document.getElementsByTagName("input")
 
         for (var i = 0; i < inputs.length; i++) {
-          // +110
           var inputId = inputs[i].getAttribute("id")
-          // 110 if ((inputs[i].getAttribute("id") != null) && (inputs[i].getAttribute("id").startsWith(id)))
           if ((inputId != null) && (inputId.startsWith(id)))
             // +110 handle cases with/out space: `system` != `systemx0020component`
             if ((inputId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) {
-              // 110 input.id = inputs[i].getAttribute("id")
               input.id = inputId
               break
             } else
@@ -108,26 +106,6 @@
         }
 
       }
-      /* -110 if ( input.id == "" ) {
-        var selects = document.getElementsByTagName("select")
-
-        for (var i = 0; i < selects.length; i++) {
-          // +110
-          var selectId = selects[i].getAttribute("id")
-          // 110 if ((selects[i].getAttribute("id") != null) && (selects[i].getAttribute("id").startsWith(id)))
-          if ((selectId != null) && (selectId.startsWith(id)))
-            // +110 handle cases with/out space: `system` != `systemx0020component`
-            if ((selectId.indexOf("_x0020_")) == (id.indexOf("_x0020_"))) {
-              // +110 begin
-              if ((selectId.endsWith("LookupField")) || (selectId.endsWith("SelectResult"))) {
-                // 110 input.id = selects[i].getAttribute("id")
-                input.id = selectId
-                break
-              }
-          }
-        }
-
-      } */
     }
 
     function setInputTitle () {
@@ -149,8 +127,46 @@
       element.setAttribute("title", input.title + input.titleRequiredSuffix)
     }
 
-    function setInputValidationOnBlurEvent () { 
+    // +130
+    var getInputErrorSpan = function (inputElement) {
+      var inputErrorSpan = null
+      var inputElementParent = inputElement.parentElement
+      var inputElementSibling = inputElementParent.firstChild
 
+      while (inputElementSibling) {
+        if ( inputElementSibling.nodeName == "SPAN" )
+          if ( inputElementSibling.id.startsWith("Error_") ) {
+            inputErrorSpan = inputElementSibling
+            break
+          }
+        inputElementSibling = inputElementSibling.nextSibling
+      }
+
+      return inputErrorSpan
+    } 
+
+    // +130
+    var insertInputError = function (id) {
+      var inputElement = document.getElementById(id)
+      var inputErrorSpan = getInputErrorSpan(inputElement)
+      if ( inputErrorSpan == null ) {
+        var inputElementRequiredErrorSpan = document.createElement("SPAN")
+        inputElementRequiredErrorSpan.setAttribute("id", "Error_" + id)
+        inputElementRequiredErrorSpan.setAttribute("class", input.requiredErrorSpanClass)
+        var inputElementRequiredErrorInnerSpan = document.createElement("SPAN")
+        var inputElementRequiredErrorInnerSiblingSpan = document.createElement("SPAN")
+        inputElementRequiredErrorInnerSiblingSpan.setAttribute("role", input.requiredErrorInnerSiblingSpanRole)
+        var inputElementRequiredErrorInnerSpanText = document.createTextNode(input.requiredErrorInnerSpanText)
+        inputElementRequiredErrorInnerSiblingSpan.appendChild(inputElementRequiredErrorInnerSpanText)
+        linebreak = document.createElement("br");
+        inputElementRequiredErrorInnerSiblingSpan.appendChild(linebreak)
+        inputElementRequiredErrorSpan.appendChild(inputElementRequiredErrorInnerSiblingSpan)
+        inputElement.parentElement.appendChild(inputElementRequiredErrorSpan)
+      }
+    }
+
+    function setInputValidationOnBlurEvent () { 
+/* -130
       function getInputErrorSpan(inputElement) {
         var inputErrorSpan = null
         var inputElementParent = inputElement.parentElement
@@ -183,11 +199,10 @@
           linebreak = document.createElement("br");
           inputElementRequiredErrorInnerSiblingSpan.appendChild(linebreak)
           inputElementRequiredErrorSpan.appendChild(inputElementRequiredErrorInnerSiblingSpan)
-          //inputElement.parentElement.appendChild(linebreak)
           inputElement.parentElement.appendChild(inputElementRequiredErrorSpan)
         }
       }
-
+-130 */
       function removeInputError (id) {
         var inputElement = document.getElementById(id)
         var inputErrorSpan = getInputErrorSpan(inputElement)
@@ -243,7 +258,8 @@
       // 120 hasInputValue: function () { return input.existValue },
       hasInputValue: function () { return input.hasValue },
       // +120
-      isInputActive: function () { return input.isActive }
+      isInputActive: function () { return input.isActive },
+      displayInputRequiredError: function () { insertInputError(input.id) }
       //insertLabelRequiredSpan: function () { insertElementSpan(label.id) },
       //appendInputRequiredTitleSuffix: function () { appendElementRequiredTitleSuffix(input.id) },
       //insertInputError: function () { insertInputError(input.id) },
