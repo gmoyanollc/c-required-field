@@ -18,6 +18,7 @@
       ~~~
 
     ## Change Log
+    20190606-1.4.0-initial SELECT `DropDownChoice`-g
     20190605-1.3.0-initial input error display after invalid post-g
     20190604-1.2.1-downgrade `let` to `var` to ecma-5-g
     20190604-1.2.0-initial text box validation-g
@@ -80,7 +81,8 @@
             // +110 handle cases with/out space: `system` != `systemx0020component`
             if ((selectId.indexOf("_x0020_")) == (id.indexOf("_x0020_")))
               // +120
-              if ((selectId.endsWith("LookupField")) || (selectId.endsWith("SelectResult"))) {
+              // 140 if ((selectId.endsWith("LookupField")) || (selectId.endsWith("SelectResult"))) {
+              if ((selectId.endsWith("LookupField")) || (selectId.endsWith("SelectResult")) || (selectId.endsWith("DropDownChoice"))) {
                 // 110 input.id = selects[i].getAttribute("id")
                 input.id = selectId
                 // +120
@@ -90,7 +92,6 @@
 
       }
       // +120 end
-
       if ( input.id == "" ) {
         var inputs = document.getElementsByTagName("input")
 
@@ -106,10 +107,20 @@
         }
 
       }
+      // +140 
+      if ( input.id == "" ) throw("ERROR: input id element not found.")
     }
 
     function setInputTitle () {
-      input.title = document.getElementById(input.id).getAttribute("title")
+      // -140 input.title = document.getElementById(input.id).getAttribute("title")
+      // +140 begin
+      var inputElement = document.getElementById(input.id)
+      if (typeof inputElement.title != "undefined")
+        input.title = inputElement.title
+      //var inputTitle = document.getElementById(input.id).getAttribute("title")
+      //if (inputTitle != null)
+        //input.title = inputTitle
+      // +140 end
     }
 
     // alternative is to use element.appendChild()
