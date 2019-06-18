@@ -17,6 +17,7 @@
     ~~~
 
   ## Change Log
+  20190618-1.6.0-remove error display when inactive-g
   20190613-1.5.0-initial multi-input checkbox and radio required field
   20190611-1.4.1-default input value validation, textarea support, and error title emulation fix-g
   20190606-1.4.0-initial SELECT `DropDownChoice`-g
@@ -335,7 +336,8 @@ function cRequiredField(tabId, labelId) {
       // +120 end -141 */
       // 141 if (isEmpty) {
       // 150 if (hasValue(id)) {
-      if (hasValue()) {
+      // 160 if (hasValue()) {
+      if ( (hasValue()) || (!input.isActive) ) {
         // -141 insertInputError(id)
         // +141
         // 150 removeInputError(id)
