@@ -17,6 +17,7 @@
     ~~~
 
   ## Change Log
+  20190927-1.7.0-required display and active status toggle-g
   20190618-1.6.0-remove error display when inactive-g
   20190613-1.5.0-initial multi-input checkbox and radio required field
   20190611-1.4.1-default input value validation, textarea support, and error title emulation fix-g
@@ -29,13 +30,13 @@
 
 */
 
-function cRequiredField(tabId, labelId) {
+function cRequiredField (tabId, labelId) {
   var input = {
     ids: [],
     title: "",
     titleRequiredSuffix: " is a required field.",
     requiredErrorSpanClass: "ms-formvalidation ms-csrformvalidation",
-    requiredErrorInnerSpanText: "You can't leave this blank.",
+    requiredErrorInnerSpanText: "You can't leave this blank!",
     requiredErrorInnerSiblingSpanRole: "alert",
     requiredErrorInnerSiblingSpanMultiInputStyle: "margin-left: 1em",
     hasValue: function () { return hasValue() },
@@ -45,14 +46,17 @@ function cRequiredField(tabId, labelId) {
   var label = {
     id: labelId,
     title: "",
-    requiredSpan: "<SPAN class='ms-accentText' title='This is a required field.'> *</SPAN>"
+    // -170 requiredSpan: "<SPAN class='ms-accentText' title='This is a required field.'> *</SPAN>"
+    requiredSpanClass: "ms-accentText",
+    requiredSpanTitle: "This is a required field.",
+    requiredSpanText: " *"
   }
   setInputId(labelId)
   setInputTitle()
   insertLabelRequiredSpan()
   setInputValidationOnBlurEvent()
 
-  function setInputId(id) {
+  function setInputId (id) {
     var divs = document.getElementsByTagName("div")
 
     for (var i = 0; i < divs.length; i++) {
@@ -114,23 +118,49 @@ function cRequiredField(tabId, labelId) {
     if (input.ids.length == 0) console.log("[error]: input id not found for element: " + id)
   }
 
-  function setInputTitle() {
+  function setInputTitle () {
     var inputElement = document.getElementById(input.ids[0])
     if (typeof inputElement.title != "undefined")
       input.title = inputElement.title
     else console.log("[warning] undefined input title: " + input.ids[0])
   }
 
-  // alternative is to use element.appendChild()
-  function insertLabelRequiredSpan() {
-    var element = document.getElementById(label.id)
-    var elementInnerHtml = element.innerHTML
-    var elementInnerHtmlClosingTagIndex = elementInnerHtml.search("</")
-    var elementInnerHtmlSliceToClosingTag = elementInnerHtml.slice(0, elementInnerHtmlClosingTagIndex)
-    var elementInnerHtmlClosingTagSlice = elementInnerHtml.slice(elementInnerHtmlClosingTagIndex)
-    element.innerHTML = elementInnerHtmlSliceToClosingTag + label.requiredSpan + elementInnerHtmlClosingTagSlice
-  }
+  // -170 // alternative is to use element.appendChild()
+  function insertLabelRequiredSpan () {
+    if (document.getElementById(label.id + "RequiredSpan") == null) {
+      var element = document.getElementById(label.id)
+      /* -170 var elementInnerHtml = element.innerHTML
+      var elementInnerHtmlClosingTagIndex = elementInnerHtml.search("</")
+      var elementInnerHtmlSliceToClosingTag = elementInnerHtml.slice(0, elementInnerHtmlClosingTagIndex)
+      var elementInnerHtmlClosingTagSlice = elementInnerHtml.slice(elementInnerHtmlClosingTagIndex)
+      element.innerHTML = elementInnerHtmlSliceToClosingTag + label.requiredSpan + elementInnerHtmlClosingTagSlice // -170 */
+      // +170 begin
+      var elementChild = element.firstChild
 
+      while (elementChild) {
+        if (elementChild.nodeName == "NOBR") {
+          var elementChildRequiredSpan = document.createElement("SPAN")
+          elementChildRequiredSpan.setAttribute("id", label.id + "RequiredSpan")
+          elementChildRequiredSpan.setAttribute("class", label.requiredSpanClass)
+          elementChildRequiredSpan.setAttribute("title", label.requiredSpanTitle)
+          var elementChildRequiredSpanText = document.createTextNode(label.requiredSpanText)
+          elementChildRequiredSpan.appendChild(elementChildRequiredSpanText)
+          elementChild.appendChild(elementChildRequiredSpan)
+          break
+        }
+        elementChild = elementChild.nextSibling
+      }
+
+    }
+  }
+  // +170 end
+  // +170 begin
+  function removeLabelRequiredSpan () {
+    var labelRequiredSpan = document.getElementById(label.id + "RequiredSpan")
+    if (labelRequiredSpan != null)
+      labelRequiredSpan.parentNode.removeChild(labelRequiredSpan)
+  }
+  // +170 end
   var getInputErrorSpan = function (inputElement) {
     var inputErrorSpan = null
     var inputElementParent = inputElement.parentElement
@@ -169,7 +199,7 @@ function cRequiredField(tabId, labelId) {
     }
   }
 
-  function hasValue() {
+  function hasValue () {
     var hasValue = false
     var inputElement
 
@@ -200,16 +230,16 @@ function cRequiredField(tabId, labelId) {
     return hasValue
   }
 
-  function setInputValidationOnBlurEvent() {
+  function setInputValidationOnBlurEvent () {
 
-    function removeInputError() {
+    function removeInputError () {
       var inputElement = document.getElementById(input.ids[input.ids.length - 1])
       var inputErrorSpan = getInputErrorSpan(inputElement)
       if (inputErrorSpan != null)
         inputElement.parentElement.removeChild(inputErrorSpan)
     }
 
-    function validateInput() {
+    function validateInput () {
       if ((hasValue()) || (!input.isActive)) {
         removeInputError()
       }
@@ -230,7 +260,11 @@ function cRequiredField(tabId, labelId) {
 
   return {
     tabId: tabId,
+    // +170
+    labelId: labelId,
     setInputIsActive: function (InputIsActive) { input.isActive = InputIsActive },
+    // +170
+    setInputRequired: function (isRequired) { input.isActive = isRequired; if (isRequired) { insertLabelRequiredSpan() } else { removeLabelRequiredSpan() } },
     getInput: function () { return input },
     getInputIds: function () { return input.ids },
     getLabel: function () { return label },
